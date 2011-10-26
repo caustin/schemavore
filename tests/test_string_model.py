@@ -16,11 +16,12 @@ def get_prefix_binding(namespace_prefix, namespace):
 class TestSimpleString(unittest.TestCase):
 
     def setUp(self):
-        self.text = "text"
-        self.tag = "tag"
+        self.value = "text"
         self.name = "name"
-        self.string_model = String(self.tag, self.text, name=self.name)
+        self.name = "name"
+        self.string_model = String(self.name, self.value)
 
+    # removing because name is redundant with name....will reconsider renaming.....name to name and text to value!!!!!
     def set_type_name(self):
         self.string_model.type_name = "foo"
 
@@ -46,37 +47,37 @@ class TestSimpleString(unittest.TestCase):
         self.assertRaises(AttributeError, self.set_xsd_type_info)
 
     def test_text(self):
-        self.assertEquals(self.text, self.string_model.text)
+        self.assertEquals(self.value, self.string_model.value)
 
     def test_tag(self):
-        self.assertEquals(self.tag, self.string_model.tag)
+        self.assertEquals(self.name, self.string_model.name)
 
     def test_name(self):
         self.assertEquals(self.name, self.string_model.name)
 
     def test_default(self):
-        s = String(self.tag, None, name=self.name, default="default")
-        self.assertEquals("default", s.text)
+        s = String(self.name, None,  default="default")
+        self.assertEquals("default", s.value)
 
     def test_default_with_text(self):
-        s = String(self.tag, self.text, name=self.name, default="default")
-        self.assertEquals(self.text, s.text)
+        s = String(self.name, self.value,  default="default")
+        self.assertEquals(self.value, s.value)
 
     def test_fixed(self):
-        s = String(self.tag, None, name=self.name, fixed="fixed")
-        self.assertEquals("fixed", s.text)
+        s = String(self.name, None, fixed="fixed")
+        self.assertEquals("fixed", s.value)
 
     def test_fixed_with_text(self):
-        s = String(self.tag, self.text, name=self.name, fixed="fixed")
-        self.assertEquals("fixed", s.text)
+        s = String(self.name, self.value, fixed="fixed")
+        self.assertEquals("fixed", s.value)
 
     def test_fixed_with_default(self):
-        s = String(self.tag, None, name=self.name, fixed="fixed", default="default")
-        self.assertEquals("fixed", s.text)
+        s = String(self.name, None,  fixed="fixed", default="default")
+        self.assertEquals("fixed", s.value)
 
     def test_fixed_with_default_and_text(self):
-        s = String(self.tag, self.text, name=self.name, fixed="fixed", default="default")
-        self.assertEquals("fixed", s.text)
+        s = String(self.name, self.value,  fixed="fixed", default="default")
+        self.assertEquals("fixed", s.value)
 
     def test_from_xml(self):
         self.assertEquals(
@@ -86,19 +87,19 @@ class TestSimpleString(unittest.TestCase):
 
     def test_enumeration_value(self):
         enum_vals = ["A", "B", "C", "D"]
-        s = String(self.tag, "A", enumeration=enum_vals)
+        s = String(self.name, "A", enumeration=enum_vals)
         self.assertEquals(enum_vals, s.enumeration)
 
 
     def test_enumeration_violation(self):
         enum_vals = ["A", "B", "C", "D"]
-        self.assertRaises(AttributeError, self._build_string, self.tag, self.text, enumeration=enum_vals)
+        self.assertRaises(AttributeError, self._build_string, self.name, self.value, enumeration=enum_vals)
 
 
 
     def test_max_length_value(self):
         ml = 4
-        s = String(self.tag, "ABC", name=self.name, max_length=ml)
+        s = String(self.name, "ABC",  max_length=ml)
         self.assertEquals(ml, s.max_length)
 
     def _build_string(self, tag, text, max_length=None, min_length=None, length=None, enumeration=None):
@@ -113,37 +114,37 @@ class TestSimpleString(unittest.TestCase):
 
     def test_max_length_violation(self):
         ml = 2
-        self.assertRaises(AttributeError, self._build_string, self.tag, "ABC", max_length=ml)
+        self.assertRaises(AttributeError, self._build_string, self.name, "ABC", max_length=ml)
 
     def test_min_length(self):
         min_length = 4
-        s = String(self.tag, "ABCD", name=self.name, min_length=min_length)
+        s = String(self.name, "ABCD",  min_length=min_length)
         self.assertEquals(min_length, s.min_length)
 
     def test_min_length_violation(self):
         min = 4
-        self.assertRaises(AttributeError, self._build_string, self.tag, "ABC", min_length=min)
+        self.assertRaises(AttributeError, self._build_string, self.name, "ABC", min_length=min)
 
     def test_max_less_than_min(self):
         min = 6
         max = 5
-        self.assertRaises(AttributeError, self._build_string, self.tag, self.text, max_length=max, min_length=min)
+        self.assertRaises(AttributeError, self._build_string, self.name, self.value, max_length=max, min_length=min)
 
     def test_length_value(self):
-        s = self._build_string(self.tag, self.text, length=len(self.text))
-        self.assertEquals(len(self.text), s.length)
+        s = self._build_string(self.name, self.value, length=len(self.value))
+        self.assertEquals(len(self.value), s.length)
 
     def test_length_violation_short(self):
-        self.assertRaises(AttributeError, self._build_string, self.tag, self.text, length=len(self.text)-1)
+        self.assertRaises(AttributeError, self._build_string, self.name, self.value, length=len(self.value)-1)
 
     def test_length_violation_long(self):
-        self.assertRaises(AttributeError, self._build_string, self.tag, self.text, length=len(self.text)+1)
+        self.assertRaises(AttributeError, self._build_string, self.name, self.value, length=len(self.value)+1)
 
     def test_pattern(self):
-        self.assertFalse(True)
+        raise NotImplementedError
 
     def test_whitespace(self):
-        self.assertFalse(True)
+        raise NotImplementedError
 
     def test_from_element(self):
         self.assertEquals(
@@ -152,10 +153,10 @@ class TestSimpleString(unittest.TestCase):
         )
 
     def test_xml(self):
-        tag = get_prefix_tag(NS_XSD_PREFIX, self.tag)
+        tag = get_prefix_tag(NS_XSD_PREFIX, self.name)
         prefix_binding = get_prefix_binding(NS_XSD_PREFIX, NS_XSD)
         expected_xml = "<{0:>s} {1:>s}>{2:>s}</{3:>s}>".format(
-            tag, prefix_binding, self.text, tag
+            tag, prefix_binding, self.value, tag
         )
         self.assertEquals(expected_xml, self.string_model.xml.strip())
 
@@ -163,9 +164,3 @@ class TestSimpleString(unittest.TestCase):
         element = self.string_model.element
         nsmap = {NS_XSD_PREFIX:NS_XSD}
         self.assertEquals(nsmap, element.nsmap)
-
-    def test_xsd(self):
-
-        xsd = self.string_model.xml_schema
-        print xsd
-        self.assertFalse(True)

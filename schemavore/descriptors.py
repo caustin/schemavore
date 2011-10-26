@@ -15,9 +15,9 @@ class XmlInstanceElement(object):
                 "This method requires an instance of the Model Class"
                 )
 
-        tag = "{%s}%s" % (Xsd.namespace, instance.tag)
+        tag = "{%s}%s" % (Xsd.namespace, instance.name)
         element = etree.Element(tag, nsmap=primitive_nsmap)
-        element.text = instance.text
+        element.text = instance.value
 
         return element
 
