@@ -4,9 +4,6 @@ import lxml
 from lxml import etree
 
 
-
-
-
 class XmlInstanceElement(object):
     """
     """
@@ -38,17 +35,6 @@ class Xml(object):
 
         return etree.tostring(instance.element, pretty_print=True)
 
-#    def __set__(self, instance, value):
-#
-#        # 1st load the xmszxsxl via lxml
-#        try :
-#            et = etree.fromstring(value)
-#        except Exception as e:
-#            raise e
-
-        
-
-
 
 class XmlSchema(object):
     """
@@ -79,6 +65,11 @@ class XmlSchema(object):
 
 
 class ImmutableAttributeDescriptor(object):
+    """Wraps any container that supports attribute access and enforces
+    immutability on the desired attribute.
+
+    This has been tested only with named tuples at this point
+    """
 
     def __init__(self, attribute, attribute_container):
         """
@@ -97,7 +88,7 @@ class ImmutableAttributeDescriptor(object):
             return container
 
 
-    def __get__(self, instance, owner):
+    def __get__(self, instance, owner=None):
         container = self.__check_container(instance)
         attr_value = getattr(container, self._attribute)
         return attr_value

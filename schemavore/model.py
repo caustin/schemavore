@@ -76,12 +76,42 @@ class ModelBase(object):
         else :
             self.text = text
 
+    def validate(self, *args, **kwargs):
+        """Method to
+        """
+
+        # TODO: Figure out a more better :) way to handle this.
+        return self.tag is not None and type(self.tag) is type(str)
+
 
 class String(ModelBase):
     """
     """
 
     xsd_type_info = TypeInformation(type_name="string", namespace=Xsd.namespace)
+
+    #todo: Implement a validate() type method in the base class and have it
+    # implemented by the subclasses
+
+    #todo: Model Behaviour Test
+    #todo: ModelTest for pattern -- defered to later
+    #todo: ModelTest for whiteSpace -- defered to later
+
+    #todo: XSD Rendering and Validation Tests
+    #todo: XSDTest for enumeration
+    #todo: XSDTest for length
+    #todo: XSDTest for maxLength
+    #todo: XSDTest for minLength
+    #todo: XSDTest for pattern
+    #todo: XSDTest for whiteSpace
+
+    #todo: XML Rendering test
+    #todo: XMLTest for enumeration
+    #todo: XMLTest for length
+    #todo: XMLTest for maxLength
+    #todo: XMLTest for minLength
+    #todo: XMLTest for pattern
+    #todo: XMLTest for whiteSpace
 
     def __init__(self, tag, text, **kwargs):
         """
@@ -98,11 +128,55 @@ class String(ModelBase):
                 conjunction with default and will result in the text not being
                 set if it is explicitly passed.
 
-            enumeration:
-            length:
-            maxLength:
-            minLength:
-            pattern (NMTOKENS, IDREFS, and ENTITIES cannot use this constraint):
-            whiteSpace:
+            Restrictions:
+                enumeration:
+                    Defines a list of acceptable values
+                length:
+                    Specifies the exact number of characters or list items
+                    allowed. Must be equal to or greater than zero
+                maxLength or max_length:
+                	Specifies the maximum number of characters or list items
+                	allowed. Must be equal to or greater than zero
+                minLength:
+                    Specifies the minimum number of characters or list items
+                    allowed. Must be equal to or greater than zero
+                pattern (NMTOKENS, IDREFS, and ENTITIES cannot use this constraint):
+                    Defines the exact sequence of characters that are acceptable
+                whiteSpace:
+                    Specifies how white space (line feeds, tabs, spaces, and
+                    carriage returns) is handled
         """
+
+        self.max_length = kwargs.get("max_length")
+        self.min_length = kwargs.get("min_length")
+        self.length = kwargs.get("length")
+        self.enumeration = kwargs.get("enumeration")
+
+
+        if self.length :
+            if len(text) != self.length:
+                raise AttributeError("Length of text is not the same a the specified length")
+    
+        elif self.max_length and len(text) > self.max_length:
+            raise AttributeError("Length of text is greater than the specified max_length")
+        elif self.max_length and self.min_length:
+            if self.max_length < self.min_length:
+                raise AttributeError("The specified max_length is less than the specified min_length")
+        elif self.min_length and len(text) < self.min_length:
+            raise AttributeError("Length of text is less than the specified min_length")
+
+        elif self.enumeration:
+            if text not in self.enumeration:
+                raise AttributeError("text not in specified enumeration")
+
+
+        
         super(String, self).__init__(tag, text, **kwargs)
+
+    def __repr__(self):
+        return "String(%s, %s)" % (self.tag, self.text)
+
+    def __str__(self):
+        return self.text
+
+    

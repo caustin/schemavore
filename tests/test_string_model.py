@@ -84,6 +84,67 @@ class TestSimpleString(unittest.TestCase):
             type(String)
         )
 
+    def test_enumeration_value(self):
+        enum_vals = ["A", "B", "C", "D"]
+        s = String(self.tag, "A", enumeration=enum_vals)
+        self.assertEquals(enum_vals, s.enumeration)
+
+
+    def test_enumeration_violation(self):
+        enum_vals = ["A", "B", "C", "D"]
+        self.assertRaises(AttributeError, self._build_string, self.tag, self.text, enumeration=enum_vals)
+
+
+
+    def test_max_length_value(self):
+        ml = 4
+        s = String(self.tag, "ABC", name=self.name, max_length=ml)
+        self.assertEquals(ml, s.max_length)
+
+    def _build_string(self, tag, text, max_length=None, min_length=None, length=None, enumeration=None):
+        return String(
+            tag,
+            text,
+            max_length=max_length,
+            min_length=min_length,
+            length=length,
+            enumeration=enumeration
+        )
+
+    def test_max_length_violation(self):
+        ml = 2
+        self.assertRaises(AttributeError, self._build_string, self.tag, "ABC", max_length=ml)
+
+    def test_min_length(self):
+        min_length = 4
+        s = String(self.tag, "ABCD", name=self.name, min_length=min_length)
+        self.assertEquals(min_length, s.min_length)
+
+    def test_min_length_violation(self):
+        min = 4
+        self.assertRaises(AttributeError, self._build_string, self.tag, "ABC", min_length=min)
+
+    def test_max_less_than_min(self):
+        min = 6
+        max = 5
+        self.assertRaises(AttributeError, self._build_string, self.tag, self.text, max_length=max, min_length=min)
+
+    def test_length_value(self):
+        s = self._build_string(self.tag, self.text, length=len(self.text))
+        self.assertEquals(len(self.text), s.length)
+
+    def test_length_violation_short(self):
+        self.assertRaises(AttributeError, self._build_string, self.tag, self.text, length=len(self.text)-1)
+
+    def test_length_violation_long(self):
+        self.assertRaises(AttributeError, self._build_string, self.tag, self.text, length=len(self.text)+1)
+
+    def test_pattern(self):
+        self.assertFalse(True)
+
+    def test_whitespace(self):
+        self.assertFalse(True)
+
     def test_from_element(self):
         self.assertEquals(
             type(String.from_element(etree.fromstringlist("<a>b</a>"))),
