@@ -22,8 +22,8 @@ class XmlInstanceElement(object):
         return element
 
 
-class Xml(object):
-    """
+class XmlNode(object):
+    """Represents the XML instance element
     """
 
     def __get__(self, instance, owner):
@@ -36,9 +36,31 @@ class Xml(object):
         return etree.tostring(instance.element, pretty_print=True)
 
 
-class XmlSchema(object):
+class XmlSchemaNode(object):
+    """Represents the schema node of an individual XSD element. 
     """
-    """
+
+    def __init__(self):
+        self.restriction = None
+
+
+    def _build_restrictions(self, instance):
+        simple_tag = "{%s}simpleType" % instance.namespace
+        simple = etree.SubElement(self.element, simple_tag)
+        rest_tag = "{%s}restriction" % instance.namespace
+        base = "%s:%s" % (instance.prefix, instance.type_name)
+        self.restriction = etree.SubElement(simple, rest_tag)
+        self.restriction.set("base", base)
+
+
+
+
+    def _build_enumeration(self, instance):
+        if self.restriction is None:
+            self._build_restrictions(instance)
+
+        for enum in instance.enumeration:
+            etree.SubElement(self.restriction, "{%s}enumeration" % instance.namespace).set("value", enum)
 
     def __get__(self, instance, owner=None):
 
@@ -47,21 +69,32 @@ class XmlSchema(object):
         elif instance.namespace is None:
             raise ValueError("namespace must not be None.")
 
-        root = etree.Element("root", nsmap=primitive_nsmap)
         tag = "{%s}%s" % (instance.namespace, "element")
-        element = etree.Element(tag, nsmap=primitive_nsmap)
-        print instance.name
-        element.set("name", instance.name)
-        element.set("type", "{%s}%s" % (Xsd.namespace , instance.type_name))
+        self.element = etree.Element(tag, nsmap=primitive_nsmap)
+        self.element.set("name", instance.name)
+        self.element.set("type", "%s:%s" % (Xsd.prefix, instance.type_name))
 
         if instance.default:
-            element.set('default', instance.default)
+            self.element.set('default', instance.default)
         elif instance.fixed:
-            element.set("fixed", instance.fixed)
+            self.element.set("fixed", instance.fixed)
 
-        root.append(element)
+        if instance.enumeration:
+            self._build_enumeration(instance)
 
-        return root
+        if instance.default:
+            self._build_default(instance)
+
+        if instance.fixed:
+            self._build_fixed(instance)
+
+        if instance.max_length or instance.min_length:
+            self._build_min_max_lenth(instance)
+
+        if instance.length:
+            self._build_length(instance)
+
+        return self.element
 
 
 class ImmutableAttributeDescriptor(object):

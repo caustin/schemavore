@@ -1,6 +1,6 @@
 from collections import namedtuple
 from descriptors import XmlInstanceElement, ImmutableAttributeDescriptor
-from descriptors import XmlSchema, Xml
+from descriptors import XmlSchemaNode, XmlNode
 from namespace import  Xsd
 
 
@@ -26,8 +26,8 @@ class ModelBase(object):
     # ---------- Descriptors ---------- #
     type_name = ImmutableAttributeDescriptor("type_name", "xsd_type_info")
     namespace = ImmutableAttributeDescriptor("namespace", "xsd_type_info")
-    xml_schema = XmlSchema()
-    xml = Xml()
+    schema_node = XmlSchemaNode()
+    xml = XmlNode()
 
     # ---------- Class Methods ---------- #
     @classmethod
@@ -94,6 +94,7 @@ class String(ModelBase):
     """
 
     xsd_type_info = TypeInformation(type_name="string", namespace=Xsd.namespace)
+    prefix = Xsd.prefix
 
     #todo: Implement a validate() type method in the base class and have it
     # implemented by the subclasses
@@ -102,13 +103,9 @@ class String(ModelBase):
     #todo: ModelTest for pattern        -- defered to later
     #todo: ModelTest for whiteSpace     -- defered to later
 
-    #todo: XSD Rendering and Validation Tests
-    #todo: XSDTest for enumeration
-    #todo: XSDTest for length
-    #todo: XSDTest for maxLength
-    #todo: XSDTest for minLength
-    #todo: XSDTest for pattern
-    #todo: XSDTest for whiteSpace
+    #todo: XSDNode Rendering and Validation Tests
+    #todo: XSDNodeTest for pattern
+    #todo: XSDNodeTest for whiteSpace
 
     #todo: XML Rendering test
     #todo: XMLTest for enumeration
