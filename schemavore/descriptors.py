@@ -41,7 +41,7 @@ class XmlSchemaNode(object):
     """
 
     def __init__(self):
-        self.restriction = None
+        pass
 
 
     def _build_restrictions(self, instance):
@@ -49,18 +49,29 @@ class XmlSchemaNode(object):
         simple = etree.SubElement(self.element, simple_tag)
         rest_tag = "{%s}restriction" % instance.namespace
         base = "%s:%s" % (instance.prefix, instance.type_name)
-        self.restriction = etree.SubElement(simple, rest_tag)
-        self.restriction.set("base", base)
+        restriction = etree.SubElement(simple, rest_tag)
+        restriction.set("base", base)
+
+        return restriction
 
 
 
-
-    def _build_enumeration(self, instance):
-        if self.restriction is None:
-            self._build_restrictions(instance)
-
+    def _build_enumeration(self, instance, restriction):
         for enum in instance.enumeration:
-            etree.SubElement(self.restriction, "{%s}enumeration" % instance.namespace).set("value", enum)
+            etree.SubElement(restriction, "{%s}enumeration" % instance.namespace).set("value", enum)
+
+    def _build_length(self, instance, restriction):
+        etree.SubElement(restriction, "{%s}length" % instance.namespace).set("value", str(instance.length))
+
+
+    def _build_min_max_lenth(self, instance, restriction):
+
+        if instance.min_length:
+            etree.SubElement(restriction, "{%s}minLength" % instance.namespace).set("value", str(instance.min_length))
+
+        if instance.max_length:
+            etree.SubElement(restriction, "{%s}maxLength" % instance.namespace).set("value", str(instance.max_length))
+
 
     def __get__(self, instance, owner=None):
 
@@ -79,20 +90,19 @@ class XmlSchemaNode(object):
         elif instance.fixed:
             self.element.set("fixed", instance.fixed)
 
-        if instance.enumeration:
-            self._build_enumeration(instance)
 
-        if instance.default:
-            self._build_default(instance)
+        if instance.restrictions:
+            restriction = self._build_restrictions(instance)
 
-        if instance.fixed:
-            self._build_fixed(instance)
+            if instance.enumeration:
+                self._build_enumeration(instance, restriction)
 
-        if instance.max_length or instance.min_length:
-            self._build_min_max_lenth(instance)
+            if instance.max_length or instance.min_length:
+                self._build_min_max_lenth(instance, restriction)
 
-        if instance.length:
-            self._build_length(instance)
+            if instance.length:
+                self._build_length(instance, restriction)
+
 
         return self.element
 

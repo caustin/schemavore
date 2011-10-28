@@ -154,6 +154,7 @@ class String(ModelBase):
                     carriage returns) is handled
         """
 
+        self.restrictions = False
         self.max_length = kwargs.get("max_length")
         self.min_length = kwargs.get("min_length")
         self.length = kwargs.get("length")
@@ -161,18 +162,23 @@ class String(ModelBase):
 
 
         if self.length :
+            self.restrictions = True
             if len(value) != self.length:
                 raise AttributeError("Length of value is not the same a the specified length")
     
-        elif self.max_length and len(value) > self.max_length:
-            raise AttributeError("Length of value is greater than the specified max_length")
-        elif self.max_length and self.min_length:
-            if self.max_length < self.min_length:
-                raise AttributeError("The specified max_length is less than the specified min_length")
-        elif self.min_length and len(value) < self.min_length:
-            raise AttributeError("Length of value is less than the specified min_length")
+        elif self.max_length or self.min_length:
+            self.restrictions = True
+
+            if self.max_length and len(value) > self.max_length:
+                raise AttributeError("Length of value is greater than the specified max_length")
+            elif self.max_length and self.min_length:
+                if self.max_length < self.min_length:
+                    raise AttributeError("The specified max_length is less than the specified min_length")
+            elif self.min_length and len(value) < self.min_length:
+                raise AttributeError("Length of value is less than the specified min_length")
 
         elif self.enumeration:
+            self.restrictions = True
             if value not in self.enumeration:
                 raise AttributeError("value not in specified enumeration")
 
