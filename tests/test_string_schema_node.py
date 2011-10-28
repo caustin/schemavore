@@ -111,6 +111,26 @@ class StringXsdTestCase(unittest.TestCase):
         lengths = [node for node in self.string.schema_node.iter("{http://www.w3.org/2001/XMLSchema}minLength")]
         self.assertEquals(1, len(lengths))
 
+    def test_min_max_count(self):
+        min_length = 6
+        max_length = 10
+
+        self._create_string("tag", "123456", min_length=min_length, max_length=max_length)
+        min_lengths = [node for node in self.string.schema_node.iter("{http://www.w3.org/2001/XMLSchema}minLength")]
+        max_lengths = [node for node in self.string.schema_node.iter("{http://www.w3.org/2001/XMLSchema}maxLength")]
+        self.assertEquals(1, len(min_lengths))
+        self.assertEquals(1, len(max_lengths))
+
+    def test_min_max_value(self):
+        min_length = 6
+        max_length = 10
+
+        self._create_string("tag", "123456", min_length=min_length, max_length=10)
+        min_lengths = [node.get("value") for node in self.string.schema_node.iter("{http://www.w3.org/2001/XMLSchema}minLength")]
+        max_lengths = [node.get("value") for node in self.string.schema_node.iter("{http://www.w3.org/2001/XMLSchema}maxLength")]
+
+        self.assertEquals(int(min_lengths[0]), min_length)
+        self.assertEquals(int(max_lengths[0]), max_length)
 
 
     def test_pattern(self):
