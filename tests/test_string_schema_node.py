@@ -18,14 +18,14 @@ class StringXsdTestCase(unittest.TestCase):
     def setUp(self):
         self.text = "text"
         self.tag = "tag"
-        self.string = None
 
     def tearDown(self):
         self.string = None
 
 
     def _create_string(self, tag="tag", text="text", **kwargs):
-        self.string = String(tag, text, **kwargs)
+        self.string = String(tag, **kwargs)
+        self.string.value = text
 
     def test_tag(self):
         self._create_string()

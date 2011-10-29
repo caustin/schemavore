@@ -1,5 +1,6 @@
 from collections import namedtuple
 from descriptors import XmlInstanceElement, ImmutableAttributeDescriptor
+from descriptors import BaseValueDescriptor, StringValueDescriptor
 from descriptors import XmlSchemaNode, XmlNode
 from namespace import  Xsd
 
@@ -10,7 +11,6 @@ class ModelBase(object):
     """
     """
 
-    # ---------- Class Attributes ---------- #
     # Used to track the order that objects are created. Used to ensure the
     # rendering order for elements in a sequence matches the order they are
     # declared in the model
@@ -23,13 +23,14 @@ class ModelBase(object):
     xsd_type_info = TypeInformation(type_name=None, namespace=None)
     element = XmlInstanceElement()
 
-    # ---------- Descriptors ---------- #
+
     type_name = ImmutableAttributeDescriptor("type_name", "xsd_type_info")
     namespace = ImmutableAttributeDescriptor("namespace", "xsd_type_info")
     schema_node = XmlSchemaNode()
-    xml = XmlNode()
+    value = BaseValueDescriptor()
+    xml_node = XmlNode()
 
-    # ---------- Class Methods ---------- #
+
     @classmethod
     def from_string(cls, string):
         raise NotImplementedError
@@ -38,7 +39,7 @@ class ModelBase(object):
     def from_element(cls, element):
         raise NotImplementedError
 
-    # ---------- Overrides ---------- #
+
     def __setattr__(self, key, value):
         if key is "xsd_type_info":
             raise AttributeError("can't set xsd_type_info")
@@ -51,7 +52,7 @@ class ModelBase(object):
         else:
             super(ModelBase, self).__delattr__(item)
 
-    def __init__(self, name, value, **kwargs):
+    def __init__(self, name, **kwargs):
         """
         Possible kwargs are:
             name :
@@ -69,17 +70,20 @@ class ModelBase(object):
         self.name = name
         self.default = kwargs.get("default")
         self.fixed = kwargs.get("fixed")
+        self._val = None
 
 
-        if self.fixed is not None :
-            self.value = self.fixed
-        elif value is None:
-            if self.default is not None:
-                self.value = self.default
-            else:
-                self.value = value
-        else :
-            self.value = value
+#        if self.fixed is not None :
+#            self.value = self.fixed
+#
+#        elif value is None:
+#            if self.default is not None:
+#                self.value = self.default
+#            else:
+#                self.value = value
+#        else :
+#            self.value = value
+
 
     def validate(self, *args, **kwargs):
         """Method to
@@ -115,7 +119,9 @@ class String(ModelBase):
     #todo: XMLTest for pattern
     #todo: XMLTest for whiteSpace
 
-    def __init__(self, name, value, **kwargs):
+    value = StringValueDescriptor()
+
+    def __init__(self, name, **kwargs):
         """
         @param: name: The name of the instance element...not the type name.
         @param: value: The value of the instance element
@@ -160,31 +166,41 @@ class String(ModelBase):
         self.length = kwargs.get("length")
         self.enumeration = kwargs.get("enumeration")
 
-
-        if self.length :
+        if self.length or self.max_length or self.min_length or self.enumeration:
             self.restrictions = True
-            if len(value) != self.length:
-                raise AttributeError("Length of value is not the same a the specified length")
+
+#        if self.length :
+#            self.restrictions = True
+#            if len(value) != self.length:
+#                raise AttributeError(
+#                    "Length of value is not the same a the specified length"
+#                )
     
-        elif self.max_length or self.min_length:
-            self.restrictions = True
+#        elif self.max_length or self.min_length:
+#            self.restrictions = True
+#
+#            if self.max_length and len(value) > self.max_length:
+#                raise AttributeError(
+#                    "Length of value is greater than the specified max_length"
+#                )
+#
+#            elif self.max_length and self.min_length:
+#                if self.max_length < self.min_length:
+#                    raise AttributeError(
+#                        "The max_length is less than the min_length"
+#                    )
+#
+#            if self.min_length and len(value) < self.min_length:
+#                raise AttributeError(
+#                    "Length of value is less than the specified min_length"
+#                )
+#
+#        elif self.enumeration:
+#            self.restrictions = True
+#            if value not in self.enumeration:
+#                raise AttributeError("value not in specified enumeration")
 
-            if self.max_length and len(value) > self.max_length:
-                raise AttributeError("Length of value is greater than the specified max_length")
-            elif self.max_length and self.min_length:
-                if self.max_length < self.min_length:
-                    raise AttributeError("The specified max_length is less than the specified min_length")
-            elif self.min_length and len(value) < self.min_length:
-                raise AttributeError("Length of value is less than the specified min_length")
-
-        elif self.enumeration:
-            self.restrictions = True
-            if value not in self.enumeration:
-                raise AttributeError("value not in specified enumeration")
-
-
-        
-        super(String, self).__init__(name, value, **kwargs)
+        super(String, self).__init__(name,  **kwargs)
 
     def __repr__(self):
         return "String(%s, %s)" % (self.name, self.value)
@@ -192,4 +208,3 @@ class String(ModelBase):
     def __str__(self):
         return self.value
 
-    

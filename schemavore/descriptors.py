@@ -4,6 +4,67 @@ import lxml
 from lxml import etree
 
 
+class BaseValueDescriptor(object):
+    """
+    """
+
+    def __get__(self, instance, owner=None):
+
+        if instance.fixed :
+            return instance.fixed
+
+        elif instance.default and instance._val is None :
+            return instance.default
+
+        else :
+            return instance._val
+
+    
+    def __set__(self, instance, value):
+        instance._val = value
+
+    def __delete__(self, instance):
+        instance._val = None
+
+class StringValueDescriptor(BaseValueDescriptor):
+    """
+    """
+
+    def __set__(self, instance, value):
+
+        if instance.length :
+            if len(value) != instance.length:
+                raise AttributeError(
+                    "Length of value is not the same a the specified length"
+                )
+
+        elif instance.max_length or instance.min_length:
+            if instance.max_length and len(value) > instance.max_length:
+                raise AttributeError(
+                    "Length of value is greater than the specified max_length"
+                )
+
+            elif instance.max_length and instance.min_length:
+                if instance.max_length < instance.min_length:
+                    raise AttributeError(
+                        "The max_length is less than the min_length"
+                    )
+
+            if instance.min_length and len(value) < instance.min_length:
+                raise AttributeError(
+                    "Length of value is less than the specified min_length"
+                )
+
+        elif instance.enumeration:
+            if value not in instance.enumeration:
+                raise AttributeError("value not in specified enumeration")
+
+        super(StringValueDescriptor, self).__set__(instance, value)
+
+
+
+
+
 class XmlInstanceElement(object):
     """
     """
@@ -55,22 +116,29 @@ class XmlSchemaNode(object):
         return restriction
 
 
-
     def _build_enumeration(self, instance, restriction):
         for enum in instance.enumeration:
-            etree.SubElement(restriction, "{%s}enumeration" % instance.namespace).set("value", enum)
+            etree.SubElement(
+                restriction, "{%s}enumeration" % instance.namespace
+            ).set("value", enum)
 
     def _build_length(self, instance, restriction):
-        etree.SubElement(restriction, "{%s}length" % instance.namespace).set("value", str(instance.length))
+        etree.SubElement(
+            restriction, "{%s}length" % instance.namespace
+        ).set("value", str(instance.length))
 
 
     def _build_min_max_lenth(self, instance, restriction):
 
         if instance.min_length:
-            etree.SubElement(restriction, "{%s}minLength" % instance.namespace).set("value", str(instance.min_length))
+            etree.SubElement(
+                restriction, "{%s}minLength" % instance.namespace
+            ).set("value", str(instance.min_length))
 
         if instance.max_length:
-            etree.SubElement(restriction, "{%s}maxLength" % instance.namespace).set("value", str(instance.max_length))
+            etree.SubElement(
+                restriction, "{%s}maxLength" % instance.namespace
+            ).set("value", str(instance.max_length))
 
 
     def __get__(self, instance, owner=None):
@@ -90,7 +158,6 @@ class XmlSchemaNode(object):
         elif instance.fixed:
             self.element.set("fixed", instance.fixed)
 
-
         if instance.restrictions:
             restriction = self._build_restrictions(instance)
 
@@ -103,8 +170,9 @@ class XmlSchemaNode(object):
             if instance.length:
                 self._build_length(instance, restriction)
 
-
         return self.element
+
+
 
 
 class ImmutableAttributeDescriptor(object):
