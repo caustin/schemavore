@@ -101,8 +101,8 @@ class XmlSchemaNode(object):
     """Represents the schema node of an individual XSD element. 
     """
 
-    def __init__(self):
-        pass
+    def __init__(self, element_name="element"):
+        self.element_name = element_name
 
 
     def _build_restrictions(self, instance):
@@ -148,7 +148,7 @@ class XmlSchemaNode(object):
         elif instance.namespace is None:
             raise ValueError("namespace must not be None.")
 
-        tag = "{%s}%s" % (instance.namespace, "element")
+        tag = "{%s}%s" % (instance.namespace, self.element_name)
         self.element = etree.Element(tag, nsmap=primitive_nsmap)
         self.element.set("name", instance.name)
         self.element.set("type", "%s:%s" % (Xsd.prefix, instance.type_name))

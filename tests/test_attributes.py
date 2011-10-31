@@ -1,4 +1,7 @@
 import unittest
+
+import lxml
+
 from model import Attribute, String
 
 class DefaultAttributeTestCase(unittest.TestCase):
@@ -49,3 +52,10 @@ class DefaultAttributeTestCase(unittest.TestCase):
         s = Attribute(name)
 
         self.assertEquals(type_info.namespace, s.namespace)
+
+    def test_output(self):
+        name = "name"
+        s = Attribute(name)
+
+        print lxml.etree.tostring(s.schema_node)
+        self.assertFalse(True)

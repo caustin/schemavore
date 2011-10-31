@@ -124,6 +124,7 @@ class Attribute(ModelBase):
 
     namespace = None
     type_name = None
+    schema_node = XmlSchemaNode(element_name="attribute")
 
     # TODO: Attributes only support string types..since that is all this
     # project supports at the present.  Fix this
@@ -143,6 +144,7 @@ class Attribute(ModelBase):
 
         self.type_name = self.type_information.type_name
         self.namespace = self.type_information.namespace
+        self.restrictions = False
 
         super(Attribute, self).__init__(name, **kwargs)
 
