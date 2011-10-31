@@ -170,6 +170,10 @@ class XmlSchemaNode(object):
             if instance.length:
                 self._build_length(instance, restriction)
 
+        # handle required attributes
+        if getattr(instance, "use", False):
+            self.element.set("use", "required")
+
         return self.element
 
 #TODO: Add nillable support

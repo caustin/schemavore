@@ -6,11 +6,6 @@ from model import Attribute, String
 
 class DefaultAttributeTestCase(unittest.TestCase):
 
-    def setUp(self):
-        pass
-
-    def tearDown(self):
-        pass
 
     def test_name(self):
         name = "myattribute"
@@ -53,9 +48,40 @@ class DefaultAttributeTestCase(unittest.TestCase):
 
         self.assertEquals(type_info.namespace, s.namespace)
 
-    def test_output(self):
-        name = "name"
-        s = Attribute(name)
+#    def test_output(self):
+#        name = "name"
+#        s = Attribute(name, use=True)
+#
+#        print lxml.etree.tostring(s.schema_node)
+#        self.assertFalse(True)
 
-        print lxml.etree.tostring(s.schema_node)
-        self.assertFalse(True)
+class TestStringAttributeXSD(unittest.TestCase):
+
+    def _create_string_attribute(self, name, **kwargs):
+        return Attribute(name, **kwargs)
+
+    def test_required(self):
+        name="myAttributeName"
+        sa = self._create_string_attribute(name, use=True)
+        sn = sa.schema_node
+        self.assertEqual(sn.get("use"), "required")
+
+
+    def test_not_required(self):
+        name ='norequired'
+        sa = self._create_string_attribute(name)
+        sn = sa.schema_node
+        self.assertEquals(None, sn.get("use"))
+
+
+    def test_name(self):
+        name = "a_silly_name"
+        sa = self._create_string_attribute(name)
+        sn = sa.schema_node
+        self.assertEqual(sn.get("name"), name)
+
+    def test_type(self):
+        name = "a_silly_name"
+        sa = self._create_string_attribute(name)
+        sn = sa.schema_node
+        self.assertEqual('xs:string', sn.get("type"), )
