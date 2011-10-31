@@ -172,7 +172,7 @@ class XmlSchemaNode(object):
 
         return self.element
 
-
+#TODO: Add nillable support
 
 
 class ImmutableAttributeDescriptor(object):
