@@ -15,7 +15,7 @@ class DocumentBase(object):
 
         nodes = OrderedDict()
         # TODO: Optimize the nsmap imports
-        document = lxml.etree.Element(cls.__name__, nsmap={"xs":'http://www.w3.org/2001/XMLSchema'})
+        document = lxml.etree.Element("{%s}%s" % ('http://www.w3.org/2001/XMLSchema', 'schema'), nsmap={"xs":'http://www.w3.org/2001/XMLSchema'})
 
         for key, value in cls.__dict__.iteritems():
             if issubclass(value.__class__, ModelBase):
@@ -25,7 +25,7 @@ class DocumentBase(object):
             for name, element in nodes.iteritems():
                 document.append(element)
 
-        return lxml.etree.tostring(document, pretty_print=True)
+        return lxml.etree.tostring(document, pretty_print=True, xml_declaration=True, encoding='UTF-8')
 
 
     def __setattr__(self, key, value):
