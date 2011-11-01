@@ -163,7 +163,7 @@ class StringXsdTestCase(unittest.TestCase):
         max_length = 10
 
         self._create_string(
-            "tag", "123456", min_length=min_length, max_length=10
+            "tag", "123456", min_length=min_length, max_length=max_length
         )
         sn = self.string.schema_node
 
