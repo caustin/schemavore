@@ -151,7 +151,9 @@ class XmlSchemaNode(object):
         tag = "{%s}%s" % (instance.namespace, self.element_name)
         self.element = etree.Element(tag, nsmap=primitive_nsmap)
         self.element.set("name", instance.name)
-        self.element.set("type", "%s:%s" % (Xsd.prefix, instance.type_name))
+
+        if not instance.restrictions:
+            self.element.set("type", "%s:%s" % (Xsd.prefix, instance.type_name))
 
         if instance.default:
             self.element.set('default', instance.default)

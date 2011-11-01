@@ -132,6 +132,43 @@ class StringXsdTestCase(unittest.TestCase):
         self.assertEquals(int(min_lengths[0]), min_length)
         self.assertEquals(int(max_lengths[0]), max_length)
 
+    def test_type_attribute(self):
+        """Simple Types w/out restrictions must have the type='' attribute."""
+
+        self._create_string()
+        self.assertEquals("%s:%s" % ("xs","string"), self.string.schema_node.get("type"))
+
+
+    def test_type_attribute_with_restrictions(self):
+        """Test that the type declarations are as simple as possible when using
+        restrictions.
+
+        This is what I want the output to be...
+
+        <xs:element name="s2">
+            <xs:simpleType>
+                <xs:restriction base="xs:string">
+                     <xs:minLength value="4"/>
+                     <xs:maxLength value="6"/>
+                 </xs:restriction>
+          </xs:simpleType>
+        </xs:element>
+
+        However, with non-restricted types the type='' should be in the element
+        tag.  So, this test should make sure that it is not there in the
+        restricted elements.
+        """
+
+        min_length = 6
+        max_length = 10
+
+        self._create_string(
+            "tag", "123456", min_length=min_length, max_length=10
+        )
+        sn = self.string.schema_node
+
+        self.assertEquals(None, sn.get("type"))
+
 
     def test_pattern(self):
         raise NotImplementedError

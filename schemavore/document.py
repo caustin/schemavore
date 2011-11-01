@@ -48,3 +48,4 @@ class MyDocument(DocumentBase):
     s2 = String("s2", max_length=6, min_length=4)
     s3 = String("s3", length=3, default="123")
     s4 = String("s4", fixed="a")
+    s5 = String('s5')
