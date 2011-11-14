@@ -132,6 +132,56 @@ class StringXsdTestCase(unittest.TestCase):
         self.assertEquals(int(min_lengths[0]), min_length)
         self.assertEquals(int(max_lengths[0]), max_length)
 
+    def test_min_occurs(self):
+        min = 2
+        max = 2
+        self._create_string(min_occurs=min, max_occurs=max)
+        self.assertEquals("2", self.string.schema_node.get("minOccurs"))
+
+    def test_max_occurs(self):
+        self._create_string(max_occurs=2)
+        self.assertEquals("2", self.string.schema_node.get("maxOccurs"))
+
+    def test_valid_min_max_occurs(self):
+        # Note...since xsd default for min and max occurs is 1, minOccurs and
+        # maxOccurs will not rendered unless they are > 1
+        min = 2
+        max = 3
+        self._create_string(min_occurs=min, max_occurs=max)
+        self.assertEquals(str(min), self.string.schema_node.get("minOccurs"))
+        self.assertEquals(str(max), self.string.schema_node.get("maxOccurs"))
+
+    def test_negative_min_occurs(self):
+        self.assertRaises(ValueError, self._create_string, min_occurs=-1)
+
+    def test_negative_max_occurs(self):
+        self.assertRaises(ValueError, self._create_string, max_occurs=-1)
+
+    def test_min_occurs_greater_than_max(self):
+        self.assertRaises(ValueError, self._create_string, min_occurs=2, max_occurs=1)
+
+    def test_unbounded_max_occurs(self):
+        max = "unbounded"
+        self._create_string(max_occurs=max)
+        self.assertEquals(max, self.string.schema_node.get("maxOccurs"))
+
+    def test_text_min_occurs(self):
+        min = "bounded"
+        max = "unbounded"
+        self.assertRaises(ValueError, self._create_string(min_occurs=min, max_occurs=max))
+
+    def test_nillable_true(self):
+        nillable = True
+        self.assertEquals(True, False)
+
+    def test_nillable_false(self):
+        nillable = False
+        self.assertEquals(True, False)
+
+    def test_invalid_nillable(self):
+        nillable = 1
+        self.assertEquals(True, False)
+
     def test_type_attribute(self):
         """Simple Types w/out restrictions must have the type='' attribute."""
 

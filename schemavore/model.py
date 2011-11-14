@@ -1,5 +1,5 @@
 from collections import namedtuple
-from descriptors import XmlInstanceElement, ImmutableAttributeDescriptor
+from descriptors import XmlInstanceElement, ImmutableAttributeDescriptor, NonNegativeAttributeDescriptor
 from descriptors import BaseValueDescriptor, StringValueDescriptor
 from descriptors import XmlSchemaNode, XmlNode
 from namespace import  Xsd
@@ -28,6 +28,7 @@ class ModelBase(object):
     schema_node = XmlSchemaNode()
     value = BaseValueDescriptor()
     xml_node = XmlNode()
+
 
 
     @classmethod
@@ -85,7 +86,43 @@ class ModelBase(object):
         self.default = kwargs.get("default")
         self.fixed = kwargs.get("fixed")
         self._val = None
+
+        # Per http://www.w3.org/TR/xmlschema-0/ the defaul value for min and max
+        # occurs is 1
+        self.min_occurs = kwargs.get("min_occurs", 1)
+        self.max_occurs = kwargs.get("max_occurs", 1)
         self.attributes = kwargs.get('attributes', {})
+
+        # validate indicators
+        self.__validate_occurrence_indicators()
+
+    def __validate_occurrence_indicators(self):
+
+
+        if not str(self.max_occurs).isdigit() and self.max_occurs != "unbounded":
+            raise ValueError(
+                "max_occurs must be a positve integer or unbounded"
+            )
+
+        elif not str(self.min_occurs).isdigit():
+            raise ValueError(
+                "min_occurs must be a positive integer"
+            )
+
+        elif self.min_occurs > self.max_occurs:
+            raise ValueError("min_occurs must be less than max_occurs")
+
+        elif self.min_occurs < 0 or self.max_occurs < 0 :
+            raise ValueError(
+                "min_occurs and max_occurs must be greater than zero"
+            )
+
+        else:
+            return
+
+        
+
+
 
 
 
@@ -238,3 +275,31 @@ class String(ModelBase):
 
     def __str__(self):
         return self.value
+
+
+class ComplexModel(ModelBase):
+    """
+    Represents a complex element.  The default XSD representation that should be used for complex elements is...
+
+    <xs:element name="employee" type="personinfo"/>
+
+    <xs:complexType name="personinfo">
+        <xs:sequence>
+            <xs:element name="firstname" type="xs:string"/>
+            <xs:element name="lastname" type="xs:string"/>
+        </xs:sequence>
+    </xs:complexType>
+
+    see (http://www.w3schools.com/schema/schema_complex_elements.asp)
+
+    To support empty complex types, it is necessary to render the xsd properly...see (http://www.w3schools.com/schema/schema_complex_empty.asp)
+    """
+
+    #TODO: Add support for order indicators....
+    # Possible choices are "All", "Sequence", "Choice"
+
+    #TODO: Add support for Group Indicators.
+    # Possible choices are "Group Name", "attributeGroupName"
+
+    def __init__(self):
+        pass

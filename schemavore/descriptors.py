@@ -4,6 +4,30 @@ import lxml
 from lxml import etree
 
 
+#TODO: See if this exists in the std lib.
+#TODO: Consider doing this as a decorator.
+class NonNegativeAttributeDescriptor(object):
+    """
+    """
+
+    def __init__(self, attribute_name):
+        """
+        @param attribute_name: The numeric attribute that should be treated as
+        a Non-Negative/positve attribute
+        """
+        self.attribute = attribute_name
+
+    def __get__(self, instance, owner=None):
+        return getattr(instance, self.attribute)
+
+    def __set__(self, instance, value):
+        if value < 0:
+            raise ValueError("%s must be a positive value" % self.attribute)
+        else:
+            setattr(instance, self.attribute, value)
+
+            
+
 class BaseValueDescriptor(object):
     """
     """
@@ -115,6 +139,8 @@ class XmlSchemaNode(object):
 
         return restriction
 
+    def _build_occurs(self, instance):
+        pass
 
     def _build_enumeration(self, instance, restriction):
         for enum in instance.enumeration:
@@ -160,6 +186,14 @@ class XmlSchemaNode(object):
         elif instance.fixed:
             self.element.set("fixed", instance.fixed)
 
+        # minOccurs XSD default is 1
+        if instance.min_occurs != 1:
+            self.element.set("minOccurs", str(instance.min_occurs))
+
+        # maxOccurs XSD default is 1
+        if instance.max_occurs != 1:
+            self.element.set("maxOccurs", str(instance.max_occurs))
+
         if instance.restrictions:
             restriction = self._build_restrictions(instance)
 
@@ -188,10 +222,10 @@ class ImmutableAttributeDescriptor(object):
     This has been tested only with named tuples at this point
     """
 
-    def __init__(self, attribute, attribute_container):
+    def __init__(self, attribute_name, attribute_container):
         """
         """
-        self._attribute = attribute
+        self._attribute = attribute_name
         self._attribute_container = attribute_container
 
 
