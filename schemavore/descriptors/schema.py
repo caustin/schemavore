@@ -1,130 +1,8 @@
-from collections import namedtuple
-from namespace import Xsd, primitive_nsmap
 from exceptions import ValueError
+import lxml.etree as etree
 import lxml
-from lxml import etree
-
-
-#TODO: See if this exists in the std lib.
-#TODO: Consider doing this as a decorator.
-
+from namespace import Xsd, primitive_nsmap
 SEQUENCE_TAG = "{%s}%s" % (Xsd.namespace, "sequence")
-
-class NonNegativeAttributeDescriptor(object):
-    """
-    """
-
-    def __init__(self, attribute_name):
-        """
-        @param attribute_name: The numeric attribute that should be treated as
-        a Non-Negative/positve attribute
-        """
-        self.attribute = attribute_name
-
-    def __get__(self, instance, owner=None):
-        return getattr(instance, self.attribute)
-
-    def __set__(self, instance, value):
-        if value < 0:
-            raise ValueError("%s must be a positive value" % self.attribute)
-        else:
-            setattr(instance, self.attribute, value)
-
-            
-
-class BaseValueDescriptor(object):
-    """
-    """
-
-    def __get__(self, instance, owner=None):
-
-        if instance.fixed :
-            return instance.fixed
-
-        elif instance.default and instance._val is None :
-            return instance.default
-
-        else :
-            return instance._val
-
-    
-    def __set__(self, instance, value):
-        instance._val = value
-
-    def __delete__(self, instance):
-        instance._val = None
-
-
-class StringValueDescriptor(BaseValueDescriptor):
-    """
-    """
-
-    def __set__(self, instance, value):
-
-        if instance.length :
-            if len(value) != instance.length:
-                raise AttributeError(
-                    "Length of value is not the same a the specified length"
-                )
-
-        elif instance.max_length or instance.min_length:
-            if instance.max_length and len(value) > instance.max_length:
-                raise AttributeError(
-                    "Length of value is greater than the specified max_length"
-                )
-
-            elif instance.max_length and instance.min_length:
-                if instance.max_length < instance.min_length:
-                    raise AttributeError(
-                        "The max_length is less than the min_length"
-                    )
-
-            if instance.min_length and len(value) < instance.min_length:
-                raise AttributeError(
-                    "Length of value is less than the specified min_length"
-                )
-
-        elif instance.enumeration:
-            if value not in instance.enumeration:
-                raise AttributeError("value not in specified enumeration")
-
-        super(StringValueDescriptor, self).__set__(instance, value)
-
-
-
-
-
-class XmlInstanceElement(object):
-    """
-    """
-
-    def __get__(self, instance, owner=None):
-
-        if instance is None:
-            raise ValueError(
-                "This method requires an instance of the Model Class"
-                )
-
-        tag = "{%s}%s" % (Xsd.namespace, instance.name)
-        element = etree.Element(tag, nsmap=primitive_nsmap)
-        element.text = instance.value
-
-        return element
-
-
-class XmlNode(object):
-    """Represents the XML instance element
-    """
-
-    def __get__(self, instance, owner):
-
-        if instance is None:
-            raise ValueError(
-                "This Method requires an instance of the Model Class"
-            )
-
-        return etree.tostring(instance.element, pretty_print=True)
-
 
 class ComplexSchemaElementNode(object):
 
@@ -139,6 +17,7 @@ class ComplexSchemaElementNode(object):
         self.element_node.set("type", instance.type_name)
 
         return self.element_node
+
 
 class ComplexSchemaTypeNode(object):
 
@@ -162,8 +41,6 @@ class ComplexSchemaTypeNode(object):
             order_element.append(node.schema_node)
 
         return self.element
-
-
 
 
 class ComplexXmlSchemaNode(object):
@@ -195,7 +72,7 @@ class ComplexXmlSchemaNode(object):
         #<xs:complexType name="personinfo">                 <---- type_node
         #    <xs:sequence>
         #        <xs:element name="firstname" type="xs:string"/>
-        #        <xs:element name="lastname" type="xs:string"/>
+        #        <xs:element name="lastname"  type="xs:string"/>
         #    </xs:sequence>
         #
         #</xs:complexType>                                  <---- schema-node
@@ -225,26 +102,8 @@ class ComplexXmlSchemaNode(object):
         return self.element
 
 
-class ObjectNode(object):
-    """
-    need to encapsulate the different representations of a schema node.
-
-    1) Simple
-    2) Type
-    3) Complex....
-
-    attributes.......
-
-    root
-
-    """
-
-
-    pass
-
-
 class SimpleXmlSchemaNode(object):
-    """Represents the schema node of an individual XSD element. 
+    """Represents the schema node of an individual XSD element.
     """
 
     def __init__(self, element_name="element"):
@@ -331,45 +190,3 @@ class SimpleXmlSchemaNode(object):
             self.element.set("use", "required")
 
         return self.element
-
-#TODO: Add nillable support
-
-
-class ImmutableAttributeDescriptor(object):
-    """Wraps any container that supports attribute access and enforces
-    immutability on the desired attribute.
-
-    This has been tested only with named tuples at this point
-    """
-
-    def __init__(self, attribute_name, attribute_container):
-        """
-        """
-        self._attribute = attribute_name
-        self._attribute_container = attribute_container
-
-
-    def __check_container(self, instance):
-        container = getattr(instance, self._attribute_container)
-        if container is None :
-            raise AttributeError(
-                "target instance is missing 'container' attribute"
-            )
-        else :
-            return container
-
-
-    def __get__(self, instance, owner=None):
-        container = self.__check_container(instance)
-        attr_value = getattr(container, self._attribute)
-        return attr_value
-
-
-    def __set__(self, instance, value):
-        self.__check_container(instance)
-        raise AttributeError("can't set attribute")
-
-
-    def __delete__(self, instance):
-        self.__check_container(instance)
-        raise AttributeError("can't delete attribute")
