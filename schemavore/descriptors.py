@@ -126,13 +126,85 @@ class XmlNode(object):
         return etree.tostring(instance.element, pretty_print=True)
 
 
+class ComplexSchemaElementNode(object):
+
+    def __init__(self, element_name):
+        self.element_name = element_name
+
+    def __get__(self, instance, owner=None):
+
+        tag = "{%s}%s" % (Xsd.namespace, "element")
+        self.element_node = lxml.etree.Element(tag, nsmap=primitive_nsmap)
+        self.element_node.set("name", instance.name)
+        self.element_node.set("type", instance.type_name)
+
+        return self.element_node
+
+class ComplexSchemaTypeNode(object):
+
+    def __init__(self, element_name):
+        self.element_name = element_name
+
+    def __get__(self, instance, owner=None):
+        tag = "{%s}%s" % (Xsd.namespace, "complexType")
+        self.element = etree.Element(tag, primitive_nsmap)
+        self.element.set("name", instance.type_name)
+
+        # Build the order indicator
+        order_element = etree.SubElement(self.element, SEQUENCE_TAG)
+
+        # Now, we need to inspect the mode and request the schema node for each
+        # element contained
+
+        cls = instance.__class__
+
+        for node in cls.get_child_nodes():
+            order_element.append(node.schema_node)
+
+        return self.element
+
+
+
+
 class ComplexXmlSchemaNode(object):
 
     def __init__(self, element_name="complexType"):
         self.element_name = element_name
 
 
-    def __get__(self, instance, owner):
+    def __get__(self, instance, owner=None):
+
+        # TODO: It is broken when appending a complex node it is overwriting
+        # the root element.  To correct this, the schema node needs some
+        # additional abstraction.  Additional design is also needed for
+        # handling type style imports.
+        #
+        # One approach to this could be to build a wrapper (class or tuple)
+        # that represents these views and return that to the client asking for
+        # the schema node.
+        #
+        # Another, could be to add some logic to the descriptor that based on
+        # values passed to the descriptor that tells it what kind of schema it
+        # is.
+        #
+        # Yet another approach would be to implement discrete descriptors based
+        # on a common ancestor that encapsulates those differences.
+        #
+        # <xs:element name="employee" type="personinfo"/>   <---- element_node
+        #
+        #<xs:complexType name="personinfo">                 <---- type_node
+        #    <xs:sequence>
+        #        <xs:element name="firstname" type="xs:string"/>
+        #        <xs:element name="lastname" type="xs:string"/>
+        #    </xs:sequence>
+        #
+        #</xs:complexType>                                  <---- schema-node
+        #   <ns0:complexType xmlns:ns0="mycomplex" xs="http://www.w3.org/2001/XMLSchema" name="mycomplex">
+        #       <xs:sequence xmlns:xs="http://www.w3.org/2001/XMLSchema">
+        #           <xs:element name="a" type="xs:string"/>
+        #       </xs:sequence>
+        #</ns0:complexType>
+
 
         # Build to root
         tag = "{%s}%s" % (instance.name, self.element_name)
@@ -146,12 +218,29 @@ class ComplexXmlSchemaNode(object):
         # element contained
 
         cls = instance.__class__
+
         for node in cls.get_child_nodes():
             order_element.append(node.schema_node)
 
         return self.element
 
 
+class ObjectNode(object):
+    """
+    need to encapsulate the different representations of a schema node.
+
+    1) Simple
+    2) Type
+    3) Complex....
+
+    attributes.......
+
+    root
+
+    """
+
+
+    pass
 
 
 class SimpleXmlSchemaNode(object):

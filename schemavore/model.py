@@ -284,7 +284,10 @@ class String(ModelBase):
         return "String(%s, %s)" % (self.name, self.value)
 
     def __str__(self):
-        return self.value
+        if self.value:
+            return self.value
+        else:
+            return self.name
 
 
 class ComplexModel(ModelBase):
@@ -315,10 +318,27 @@ class ComplexModel(ModelBase):
     schema_node = ComplexXmlSchemaNode()
 
     def __init__(self, name, **kwargs):
-        ModelBase.__init__(name, **kwargs)
+        super(ComplexModel, self).__init__(name, **kwargs)
+
+        #TODO: Implement This on the descriptor side !!!!
+        self.order_indicator = kwargs.get("order_indicator", "sequence")
+
+        self.creation_counter = ModelBase.creation_counter
+        ModelBase.creation_counter += 1
+
 
     @classmethod
     def get_child_nodes(cls):
-        for value in cls.__dict__.itervalues():
+
+        nodes = dict()
+
+        for key, value in cls.__dict__.iteritems():
             if issubclass(value.__class__, ModelBase):
-                yield value
+                nodes[key] = value
+
+        for key, value in sorted(
+                nodes.items(), key=lambda (key, value):
+                (value.creation_counter, key)):
+
+                 yield value
+

@@ -36,6 +36,11 @@ class DocumentBase(object):
             encoding='UTF-8'
         )
 
+    @classmethod
+    def get_wsdl(cls):
+        """
+        """
+        pass
 
     def __setattr__(self, key, value):
 
