@@ -1,7 +1,7 @@
 from collections import namedtuple
-from descriptors import XmlInstanceElement, ImmutableAttributeDescriptor, NonNegativeAttributeDescriptor
+from descriptors import XmlInstanceElement, ImmutableAttributeDescriptor, NonNegativeAttributeDescriptor, ComplexXmlSchemaNode
 from descriptors import BaseValueDescriptor, StringValueDescriptor
-from descriptors import XmlSchemaNode, XmlNode
+from descriptors import SimpleXmlSchemaNode, XmlNode
 from namespace import  Xsd
 
 
@@ -25,10 +25,9 @@ class ModelBase(object):
 
     type_name = ImmutableAttributeDescriptor("type_name", "xsd_type_info")
     namespace = ImmutableAttributeDescriptor("namespace", "xsd_type_info")
-    schema_node = XmlSchemaNode()
+    schema_node = SimpleXmlSchemaNode()
     value = BaseValueDescriptor()
     xml_node = XmlNode()
-
 
 
     @classmethod
@@ -93,11 +92,16 @@ class ModelBase(object):
         self.max_occurs = kwargs.get("max_occurs", 1)
         self.attributes = kwargs.get('attributes', {})
 
+        # The default value for nillable is False
+        self.nillable = kwargs.get('nillable', False)
+        
         # validate indicators
         self.__validate_occurrence_indicators()
 
-    def __validate_occurrence_indicators(self):
+        # validate nillable
+        self.__validate_nillable()
 
+    def __validate_occurrence_indicators(self):
 
         if not str(self.max_occurs).isdigit() and self.max_occurs != "unbounded":
             raise ValueError(
@@ -116,8 +120,13 @@ class ModelBase(object):
             raise ValueError(
                 "min_occurs and max_occurs must be greater than zero"
             )
-
         else:
+            return
+
+    def __validate_nillable(self):
+        if self.nillable not in [True, False] :
+            raise ValueError("nillable must be either True or False")
+        else :
             return
 
         
@@ -161,7 +170,7 @@ class Attribute(ModelBase):
 
     namespace = None
     type_name = None
-    schema_node = XmlSchemaNode(element_name="attribute")
+    schema_node = SimpleXmlSchemaNode(element_name="attribute")
 
     # TODO: Attributes only support string types..since that is all this
     # project supports at the present.  Fix this
@@ -262,6 +271,7 @@ class String(ModelBase):
         self.length = kwargs.get("length")
         self.enumeration = kwargs.get("enumeration")
 
+
         if self.length or self.max_length or self.min_length or self.enumeration:
             self.restrictions = True
 
@@ -301,5 +311,13 @@ class ComplexModel(ModelBase):
     #TODO: Add support for Group Indicators.
     # Possible choices are "Group Name", "attributeGroupName"
 
-    def __init__(self):
-        pass
+    schema_node = ComplexXmlSchemaNode()
+
+    def __init__(self, name, **kwargs):
+        ModelBase.__init__(name, **kwargs)
+
+    @classmethod
+    def get_child_nodes(cls):
+        for key, value in cls.__dict__.iteritems():
+            if issubclass(value.__class__, ModelBase):
+                yield value

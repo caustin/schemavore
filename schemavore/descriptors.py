@@ -1,3 +1,4 @@
+from collections import namedtuple
 from namespace import Xsd, primitive_nsmap
 from exceptions import ValueError
 import lxml
@@ -6,6 +7,9 @@ from lxml import etree
 
 #TODO: See if this exists in the std lib.
 #TODO: Consider doing this as a decorator.
+
+SEQUENCE_TAG = "{%s}%s" % (Xsd.namespace, "sequence")
+
 class NonNegativeAttributeDescriptor(object):
     """
     """
@@ -49,6 +53,7 @@ class BaseValueDescriptor(object):
 
     def __delete__(self, instance):
         instance._val = None
+
 
 class StringValueDescriptor(BaseValueDescriptor):
     """
@@ -121,7 +126,35 @@ class XmlNode(object):
         return etree.tostring(instance.element, pretty_print=True)
 
 
-class XmlSchemaNode(object):
+class ComplexXmlSchemaNode(object):
+
+    def __init__(self, element_name="complexType"):
+        self.element_name = element_name
+
+
+    def __get__(self, instance, owner):
+
+        # Build to root
+        tag = "{%s}%s" % (instance.name, self.element_name)
+        self.element = etree.Element(tag, primitive_nsmap)
+        self.element.set("name", instance.name)
+
+        # Build the order indicator
+        order_element = etree.SubElement(self.element, SEQUENCE_TAG)
+
+        # Now, we need to inspect the mode and request the schema node for each
+        # element contained
+
+        cls = instance.__class__
+        for node in cls.get_child_nodes():
+            order_element.append(node.schema_node)
+
+        return self.element
+
+
+
+
+class SimpleXmlSchemaNode(object):
     """Represents the schema node of an individual XSD element. 
     """
 
@@ -139,8 +172,6 @@ class XmlSchemaNode(object):
 
         return restriction
 
-    def _build_occurs(self, instance):
-        pass
 
     def _build_enumeration(self, instance, restriction):
         for enum in instance.enumeration:
