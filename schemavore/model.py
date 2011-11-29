@@ -289,7 +289,8 @@ class String(ModelBase):
 
 class ComplexModel(ModelBase):
     """
-    Represents a complex element.  The default XSD representation that should be used for complex elements is...
+    Represents a complex element.  The default XSD representation that should
+    be used for complex elements is...
 
     <xs:element name="employee" type="personinfo"/>
 
@@ -318,6 +319,6 @@ class ComplexModel(ModelBase):
 
     @classmethod
     def get_child_nodes(cls):
-        for key, value in cls.__dict__.iteritems():
+        for value in cls.__dict__.itervalues():
             if issubclass(value.__class__, ModelBase):
                 yield value
